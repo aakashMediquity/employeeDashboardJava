@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Employee List</title>
+    <style>
+        body {
+          font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+          margin: 2em;
+          background-color: #f9f9f9;
+          color: #333;
+        }
+
+        h1 {
+          color: #2c3e50;
+          text-align: center;
+        }
+
+        #wrapper {
+          max-width: 800px;
+          margin: auto;
+          padding: 2em;
+          background: white;
+          border-radius: 10px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 20px;
+          animation: fadeIn 0.5s ease-in;
+        }
+
+        th, td {
+          padding: 12px 16px;
+          text-align: left;
+          border-bottom: 1px solid #ddd;
+        }
+
+        th {
+          background-color: #3498db;
+          color: white;
+        }
+
+        tr:hover {
+          background-color: #f1f1f1;
+        }
+
+        #empty {
+          margin-top: 20px;
+          color: #888;
+          font-style: italic;
+          text-align: center;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+<div id="wrapper">
+    <h1>Employee Directory</h1>
+
+    <div id="empty" style="display: none;">Loading employee data...</div>
+
+    <table id="employeeTable">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>1</td>
+            <td>Aakash</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>Manish</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>Kanchan</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>Shweta</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+
+<script>
+    fetch('/api/employees')
+      .then(res => res.json())
+      .then(data => {
+        const table = document.getElementById('employeeTable');
+        const tbody = table.querySelector('tbody');
+        const empty = document.getElementById('empty');
+
+        if (data.length > 0) {
+          empty.style.display = "none";
+          data.forEach(emp => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${emp.id}</td><td>${emp.name}</td>`;
+            tbody.appendChild(row); // keeps existing static rows
+          });
+        }
+      })
+      .catch(err => {
+        console.error("Fetch failed:", err);
+        document.getElementById('empty').textContent = "❌ Error fetching employee data.";
+      });
+</script>
+
+</body>
+</html>
