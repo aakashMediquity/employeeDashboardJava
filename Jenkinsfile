@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = 'aakash6012/employeeimg:v1'
+        KUBECONFIG = '/var/lib/jenkins/.kube/config' // VERY IMPORTANT
+    }
+
     stages {
         stage('Clone') {
             steps {
@@ -10,7 +15,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t aakash6012/employeeimg:v1 .'
+                sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
 
@@ -19,7 +24,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push aakash6012/employeeimg:v1
+                        docker push $DOCKER_IMAGE
                     '''
                 }
             }
@@ -27,8 +32,8 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply -f deployment.yaml'
-                sh 'kubectl apply -f service.yaml'
+                sh 'kubectl apply -f deployment.yaml --validate=false'
+                sh 'kubectl apply -f service.yaml --validate=false'
             }
         }
     }
