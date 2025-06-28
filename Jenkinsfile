@@ -25,12 +25,21 @@ pipeline {
             }
         }
 
+
         stage('Deploy to Kubernetes') {
-            steps {
-                sh 'kubectl apply -f deployment.yaml'
-                sh 'kubectl apply -f service.yaml'
-            }
-        }
+    steps {
+        sh 'kubectl apply -f deployment.yaml --validate=false'
+        sh 'kubectl apply -f service.yaml --validate=false'
+    }
+}
+
+
+        // stage('Deploy to Kubernetes') {
+        //     steps {
+        //         sh 'kubectl apply -f deployment.yaml'
+        //         sh 'kubectl apply -f service.yaml'
+        //     }
+        // }
     }
 }
 
