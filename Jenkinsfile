@@ -1,36 +1,25 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE = 'aakash6012/employeeimg:v1'
-        KUBECONFIG = "/var/lib/jenkins/.kube/config"
-    }
-
     stages {
-        stage('Checkout Code') {
+        stage('Clone') {
             steps {
-                git 'https://github.com/aakashMediquity/employee-api.git'
-            }
-        }
-
-        stage('Build App') {
-            steps {
-                sh 'mvn clean package -DskipTests'
+                git 'https://github.com/aakashMediquity/employeeDashboardJava.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
+                sh 'docker build -t aakash6012/employeeimg:v1 .'
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Push to DockerHub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
-                        echo "$PASSWORD" | docker login -u "$USERNAME" --password-stdin
-                        docker push $DOCKER_IMAGE
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push aakash6012/employeeimg:v1
                     '''
                 }
             }
@@ -38,10 +27,8 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh '''
-                    kubectl apply -f deployment.yaml --validate=false
-                    kubectl apply -f service.yaml --validate=false
-                '''
+                sh 'kubectl apply -f deployment.yaml'
+                sh 'kubectl apply -f service.yaml'
             }
         }
     }
