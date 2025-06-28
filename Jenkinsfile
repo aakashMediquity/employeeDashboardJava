@@ -1,45 +1,48 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = 'aakash6012/employeeimg:v1'
+        KUBECONFIG = "/var/lib/jenkins/.kube/config"
+    }
+
     stages {
-        stage('Clone') {
+        stage('Checkout Code') {
             steps {
-                git 'https://github.com/aakashMediquity/employeeDashboardJava.git'
+                git 'https://github.com/aakashMediquity/employee-api.git'
+            }
+        }
+
+        stage('Build App') {
+            steps {
+                sh 'mvn clean package -DskipTests'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t aakash6012/employeeimg:v1 .'
+                sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
 
-        stage('Push to DockerHub') {
+        stage('Push to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                     sh '''
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push aakash6012/employeeimg:v1
+                        echo "$PASSWORD" | docker login -u "$USERNAME" --password-stdin
+                        docker push $DOCKER_IMAGE
                     '''
                 }
             }
         }
 
-
         stage('Deploy to Kubernetes') {
-    steps {
-        sh 'kubectl apply -f deployment.yaml --validate=false'
-        sh 'kubectl apply -f service.yaml --validate=false'
+            steps {
+                sh '''
+                    kubectl apply -f deployment.yaml --validate=false
+                    kubectl apply -f service.yaml --validate=false
+                '''
+            }
+        }
     }
 }
-
-
-        // stage('Deploy to Kubernetes') {
-        //     steps {
-        //         sh 'kubectl apply -f deployment.yaml'
-        //         sh 'kubectl apply -f service.yaml'
-        //     }
-        // }
-    }
-}
-
