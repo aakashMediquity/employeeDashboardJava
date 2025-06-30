@@ -1,17 +1,18 @@
 pipeline {
   agent any
+
   tools {
-    maven 'Maven 3.8.7'
+    maven 'Maven 3.8.7' // Must match the configured tool name
   }
+
   environment {
     KUBECONFIG = '/var/lib/jenkins/.kube/config'
     IMAGE_TAG = "v${BUILD_NUMBER}"
     DOCKER_IMAGE = "aakash6012/employeeimg:${IMAGE_TAG}"
-    MAVEN_HOME = tool 'Maven 3.8.7' // Match name from Jenkins Tool config
+    MAVEN_HOME = tool 'Maven 3.8.7'
   }
 
   stages {
-
     stage('Checkout Code') {
       steps {
         git 'https://github.com/aakashMediquity/employeeDashboardJava.git'
@@ -24,7 +25,7 @@ pipeline {
       }
     }
 
-    stage('Run Tests') {
+    stage('Run Unit Tests') {
       steps {
         sh '${MAVEN_HOME}/bin/mvn test'
       }
@@ -32,7 +33,7 @@ pipeline {
 
     stage('SonarQube Analysis') {
       steps {
-        withSonarQubeEnv('Sonar') {
+        withSonarQubeEnv('SonarQube') { // 🛠️ Must match the name from Jenkins → Configure System → SonarQube section
           sh '${MAVEN_HOME}/bin/mvn sonar:sonar -Dsonar.projectKey=employee-api'
         }
       }
@@ -66,6 +67,7 @@ pipeline {
 
   post {
     always {
+      // ✅ Publishes JUnit test results to Jenkins UI
       junit 'target/surefire-reports/*.xml'
     }
     success {
