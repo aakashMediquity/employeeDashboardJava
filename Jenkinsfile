@@ -1,6 +1,8 @@
 pipeline {
   agent any
-
+  tools {
+    maven 'Maven 3.8.7'
+  }
   environment {
     KUBECONFIG = '/var/lib/jenkins/.kube/config'
     IMAGE_TAG = "v${BUILD_NUMBER}"
