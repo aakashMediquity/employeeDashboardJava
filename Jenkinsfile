@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   tools {
-    maven 'Maven 3.8.7' // Must match the configured tool name
+    maven 'Maven 3.8.7' // Must match Jenkins Global Tool Configuration
   }
 
   environment {
@@ -19,21 +19,21 @@ pipeline {
       }
     }
 
-    stage('Build with Maven') {
+    stage('Build and Test with Maven') {
       steps {
-        sh '${MAVEN_HOME}/bin/mvn clean package'
+        sh '${MAVEN_HOME}/bin/mvn clean verify'
       }
     }
 
-    stage('Run Unit Tests') {
+    stage('List Test Reports') {
       steps {
-        sh '${MAVEN_HOME}/bin/mvn test'
+        sh 'ls -l target/surefire-reports || echo "No test reports found"'
       }
     }
 
     stage('SonarQube Analysis') {
       steps {
-        withSonarQubeEnv('MySonarQubeServer') { // 🛠️ Must match the name from Jenkins → Configure System → SonarQube section
+        withSonarQubeEnv('MySonarQubeServer') {
           sh '${MAVEN_HOME}/bin/mvn sonar:sonar -Dsonar.projectKey=employee-api'
         }
       }
@@ -67,7 +67,7 @@ pipeline {
 
   post {
     always {
-      // ✅ Publishes JUnit test results to Jenkins UI
+      // ✅ Publish JUnit test results
       junit 'target/surefire-reports/*.xml'
     }
     success {
