@@ -33,7 +33,7 @@ pipeline {
 
     stage('SonarQube Analysis') {
       steps {
-        withSonarQubeEnv('SonarQube') { // 🛠️ Must match the name from Jenkins → Configure System → SonarQube section
+        withSonarQubeEnv('MySonarQubeServer') { // 🛠️ Must match the name from Jenkins → Configure System → SonarQube section
           sh '${MAVEN_HOME}/bin/mvn sonar:sonar -Dsonar.projectKey=employee-api'
         }
       }
