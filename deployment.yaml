@@ -13,8 +13,8 @@ spec:
         app: employee-api
     spec:
       containers:
-        - name: employee-api
-          image: aakash6012/employeeimg:v1
-          ports:
-            - containerPort: 8080
+      - name: employee-api
+        image: aakash6012/employeeimg:v1
+        ports:
+        - containerPort: 8080
 

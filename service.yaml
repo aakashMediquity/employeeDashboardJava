@@ -9,7 +9,7 @@ spec:
   ports:
     - port: 8080
       targetPort: 8082   # Spring Boot listens on 8082
-      nodePort: 30080    # External port
+      nodePort: 30080    # External portkubectl
 
 
 
