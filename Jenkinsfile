@@ -3,7 +3,8 @@ pipeline {
 
   environment {
     KUBECONFIG = '/var/lib/jenkins/.kube/config'
-    DOCKER_IMAGE = 'aakash6012/employeeimg:v1'
+    IMAGE_TAG = "v${BUILD_NUMBER}"
+    DOCKER_IMAGE = "aakash6012/employeeimg:${IMAGE_TAG}"
   }
 
   stages {
@@ -30,17 +31,17 @@ pipeline {
       }
     }
 
+    stage('Update Deployment with New Image') {
+      steps {
+        // Replace image in deployment.yaml with the current build tag
+        sh 'sed -i "s|image: .*|image: $DOCKER_IMAGE|" deployment.yaml'
+      }
+    }
+
     stage('Deploy to Kubernetes') {
       steps {
         sh 'kubectl apply -f deployment.yaml --validate=false'
         sh 'kubectl apply -f service.yaml --validate=false'
-      }
-    }
-
-    stage('Deploy to Minikube') {
-      steps {
-        sh 'kubectl apply -f deployment.yaml'
-        sh 'kubectl apply -f service.yaml'
       }
     }
   }
