@@ -5,12 +5,34 @@ pipeline {
     KUBECONFIG = '/var/lib/jenkins/.kube/config'
     IMAGE_TAG = "v${BUILD_NUMBER}"
     DOCKER_IMAGE = "aakash6012/employeeimg:${IMAGE_TAG}"
+    MAVEN_HOME = tool 'Maven 3.8.7' // Match name from Jenkins Tool config
   }
 
   stages {
-    stage('Clone') {
+
+    stage('Checkout Code') {
       steps {
         git 'https://github.com/aakashMediquity/employeeDashboardJava.git'
+      }
+    }
+
+    stage('Build with Maven') {
+      steps {
+        sh '${MAVEN_HOME}/bin/mvn clean package'
+      }
+    }
+
+    stage('Run Tests') {
+      steps {
+        sh '${MAVEN_HOME}/bin/mvn test'
+      }
+    }
+
+    stage('SonarQube Analysis') {
+      steps {
+        withSonarQubeEnv('Sonar') {
+          sh '${MAVEN_HOME}/bin/mvn sonar:sonar -Dsonar.projectKey=employee-api'
+        }
       }
     }
 
@@ -20,7 +42,7 @@ pipeline {
       }
     }
 
-    stage('Push to DockerHub') {
+    stage('Push Docker Image') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
           sh '''
@@ -31,26 +53,24 @@ pipeline {
       }
     }
 
-    stage('Update Deployment with New Image') {
-      steps {
-        sh 'sed -i "s|image: .*|image: $DOCKER_IMAGE|" deployment.yaml'
-      }
-    }
-
     stage('Deploy to Kubernetes') {
       steps {
-        sh 'kubectl --kubeconfig=$KUBECONFIG apply -f deployment.yaml --validate=false'
-        sh 'kubectl --kubeconfig=$KUBECONFIG apply -f service.yaml --validate=false'
+        sh 'sed -i "s|image: .*|image: $DOCKER_IMAGE|" deployment.yaml'
+        sh 'kubectl apply -f deployment.yaml'
+        sh 'kubectl apply -f service.yaml'
       }
     }
   }
 
   post {
+    always {
+      junit 'target/surefire-reports/*.xml'
+    }
     success {
-      echo "✅ Build #${BUILD_NUMBER} deployed successfully as $DOCKER_IMAGE"
+      echo "✅ Build #${BUILD_NUMBER} and deployment successful."
     }
     failure {
-      echo "❌ Build failed. Please check the logs."
+      echo "❌ Build failed. Please check logs."
     }
   }
 }
