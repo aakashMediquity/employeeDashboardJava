@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: employee-api
-        image: employeeimg:v1
+        image: aakash6012/employeeimg:v1
         ports:
         - containerPort: 8080
 
