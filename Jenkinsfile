@@ -33,16 +33,24 @@ pipeline {
 
     stage('Update Deployment with New Image') {
       steps {
-        // Replace image in deployment.yaml with the current build tag
         sh 'sed -i "s|image: .*|image: $DOCKER_IMAGE|" deployment.yaml'
       }
     }
 
     stage('Deploy to Kubernetes') {
       steps {
-        sh 'kubectl apply -f deployment.yaml --validate=false'
-        sh 'kubectl apply -f service.yaml --validate=false'
+        sh 'kubectl --kubeconfig=$KUBECONFIG apply -f deployment.yaml --validate=false'
+        sh 'kubectl --kubeconfig=$KUBECONFIG apply -f service.yaml --validate=false'
       }
+    }
+  }
+
+  post {
+    success {
+      echo "✅ Build #${BUILD_NUMBER} deployed successfully as $DOCKER_IMAGE"
+    }
+    failure {
+      echo "❌ Build failed. Please check the logs."
     }
   }
 }
