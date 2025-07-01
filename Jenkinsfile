@@ -31,13 +31,16 @@ pipeline {
       }
     }
 
-    stage('SonarQube Analysis') {
-      steps {
-        withSonarQubeEnv('SonarQubeLocal') {
-          sh '${MAVEN_HOME}/bin/mvn sonar:sonar -Dsonar.projectKey=employee-api'
-        }
+stage('SonarQube Analysis') {
+  steps {
+    withSonarQubeEnv('SonarQubeLocal') {
+      withCredentials([string(credentialsId: 'sonarqube-token2', variable: 'SONAR_TOKEN')]) {
+        sh '${MAVEN_HOME}/bin/mvn sonar:sonar -Dsonar.projectKey=employee-api -Dsonar.token=$SONAR_TOKEN'
       }
     }
+  }
+}
+
 
     stage('Build Docker Image') {
       steps {
