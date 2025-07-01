@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   tools {
-    maven 'Maven 3.8.7'
+    maven 'Maven 3.8.7' // Must match Jenkins Global Tool Configuration
   }
 
   environment {
@@ -13,6 +13,7 @@ pipeline {
   }
 
   stages {
+
     stage('Checkout Code') {
       steps {
         git 'https://github.com/aakashMediquity/employeeDashboardJava.git'
@@ -22,11 +23,12 @@ pipeline {
     stage('Build and Test with Maven') {
       steps {
         sh '${MAVEN_HOME}/bin/mvn clean verify'
-        sh 'echo "Listing test reports..." && ls -l target/surefire-reports || echo "No test reports found"'
       }
       post {
         always {
+          // ✅ Publish JUnit test results immediately after tests run
           junit 'target/surefire-reports/*.xml'
+          sh 'ls -l target/surefire-reports || echo "No test reports found"'
         }
       }
     }
@@ -40,6 +42,15 @@ pipeline {
         }
       }
     }
+
+    // Optional: Wait for SonarQube Quality Gate result (if configured)
+    // stage('SonarQube Quality Gate') {
+    //   steps {
+    //     timeout(time: 5, unit: 'MINUTES') {
+    //       waitForQualityGate abortPipeline: true
+    //     }
+    //   }
+    // }
 
     stage('Build Docker Image') {
       steps {
