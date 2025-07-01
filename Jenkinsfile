@@ -19,17 +19,17 @@ pipeline {
       }
     }
 
+    stage('List Test Reports') {
+      steps {
+        sh 'ls -l target/surefire-reports || echo "No test reports found"'
+      }
+    }
     stage('Build and Test with Maven') {
       steps {
         sh '${MAVEN_HOME}/bin/mvn clean verify'
       }
     }
 
-    stage('List Test Reports') {
-      steps {
-        sh 'ls -l target/surefire-reports || echo "No test reports found"'
-      }
-    }
 
 stage('SonarQube Analysis') {
   steps {
