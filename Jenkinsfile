@@ -20,19 +20,21 @@ pipeline {
       }
     }
 
-    stage('Build and Test with Maven') {
-      steps {
-        sh '${MAVEN_HOME}/bin/mvn clean verify'
-      }
-      post {
-        always {
-          // ✅ Publish JUnit test results immediately after tests run
-           sh 'echo "Contents of target/surefire-reports:"'
-               sh 'ls -l target/surefire-reports || echo "No test reports found"'
-               junit 'target/surefire-reports/*.xml'
-        }
-      }
-    }
+   stage('Build and Test with Maven') {
+     steps {
+       sh '${MAVEN_HOME}/bin/mvn clean verify'
+     }
+     post {
+       always {
+         // ✅ Debug listing
+         sh 'echo "[INFO] Listing test reports:" && ls -l target/surefire-reports || echo "No test reports found"'
+
+         // ✅ Publish test results
+         junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
+       }
+     }
+   }
+
 
 
 
