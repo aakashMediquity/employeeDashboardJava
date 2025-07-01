@@ -27,11 +27,15 @@ pipeline {
       post {
         always {
           // ✅ Publish JUnit test results immediately after tests run
+                    sh 'ls -l target/surefire-reports || echo "No test reports found"'
+
           junit 'target/surefire-reports/*.xml'
-          sh 'ls -l target/surefire-reports || echo "No test reports found"'
         }
       }
     }
+
+
+
 
     stage('SonarQube Analysis') {
       steps {
