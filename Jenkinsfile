@@ -33,7 +33,7 @@ pipeline {
 
     stage('SonarQube Analysis') {
       steps {
-        withSonarQubeEnv('MySonarQubeServer') {
+        withSonarQubeEnv('SonarQubeLocal') {
           sh '${MAVEN_HOME}/bin/mvn sonar:sonar -Dsonar.projectKey=employee-api'
         }
       }
