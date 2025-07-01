@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   tools {
-    maven 'Maven 3.8.7' // Must match Jenkins Global Tool Configuration
+    maven 'Maven 3.8.7'
   }
 
   environment {
@@ -19,28 +19,27 @@ pipeline {
       }
     }
 
-    stage('List Test Reports') {
-      steps {
-        sh 'ls -l target/surefire-reports || echo "No test reports found"'
-      }
-    }
     stage('Build and Test with Maven') {
       steps {
         sh '${MAVEN_HOME}/bin/mvn clean verify'
+        sh 'echo "Listing test reports..." && ls -l target/surefire-reports || echo "No test reports found"'
+      }
+      post {
+        always {
+          junit 'target/surefire-reports/*.xml'
+        }
       }
     }
 
-
-stage('SonarQube Analysis') {
-  steps {
-    withSonarQubeEnv('SonarQubeLocal') {
-      withCredentials([string(credentialsId: 'sonarqube-token2', variable: 'SONAR_TOKEN')]) {
-        sh '${MAVEN_HOME}/bin/mvn sonar:sonar -Dsonar.projectKey=employee-api -Dsonar.token=$SONAR_TOKEN'
+    stage('SonarQube Analysis') {
+      steps {
+        withSonarQubeEnv('SonarQubeLocal') {
+          withCredentials([string(credentialsId: 'sonarqube-token2', variable: 'SONAR_TOKEN')]) {
+            sh '${MAVEN_HOME}/bin/mvn sonar:sonar -Dsonar.projectKey=employee-api -Dsonar.token=$SONAR_TOKEN'
+          }
+        }
       }
     }
-  }
-}
-
 
     stage('Build Docker Image') {
       steps {
@@ -69,10 +68,6 @@ stage('SonarQube Analysis') {
   }
 
   post {
-    always {
-      // ✅ Publish JUnit test results
-      junit 'target/surefire-reports/*.xml'
-    }
     success {
       echo "✅ Build #${BUILD_NUMBER} and deployment successful."
     }
